@@ -23,7 +23,7 @@ void Game::Reset()
 	// TODO #2 - Add this brick and 4 more bricks to the vector
 	int x = 0;
 	int y = 5;
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < 5; ++i)
 	{
 	Box brick;
 	brick.width = 10;
@@ -90,18 +90,17 @@ void Game::Render() const
 void Game::CheckCollision()
 {
 	// TODO #4 - Update collision to check all bricks
-	for (Box& b : bricks)
+	for (size_t i = 0; i < bricks.size(); ++i)
 	{
-		if (b.Contains(ball.x_position + ball.x_velocity, ball.y_position + ball.y_velocity))
+		if (bricks[i].Contains(ball.x_position + ball.x_velocity, ball.y_position + ball.y_velocity))
 		{
-			b.color = ConsoleColor(b.color - 1);
+			bricks[i].color = ConsoleColor(bricks[i].color - 1);
 			ball.y_velocity *= -1;
 
 			// TODO #5 - If the ball hits the same brick 3 times (color == black), remove it from the vector
-			if (b.color = ConsoleColor(0))
+			if (bricks[i].color == ConsoleColor(0))
 			{
-				
-
+				bricks.erase(bricks.begin() + i);
 			}
 		}
 	}
