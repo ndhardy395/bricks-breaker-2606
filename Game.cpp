@@ -100,7 +100,8 @@ void Game::CheckCollision()
 			// TODO #5 - If the ball hits the same brick 3 times (color == black), remove it from the vector
 			if (b.color = ConsoleColor(0))
 			{
-				std::vector::erase(b);
+				
+
 			}
 		}
 	}
