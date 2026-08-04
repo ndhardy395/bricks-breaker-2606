@@ -21,6 +21,8 @@ void Game::Reset()
 	ResetBall();
 
 	// TODO #2 - Add this brick and 4 more bricks to the vector
+	// NOAH: The starting brick color was DarkGreen, which if you hit twice puts it on black, and the notes say
+	//if the color is black delete it. So I changed the bricks to DarkCyan, so you can hit the block 3 times - then delete.
 	int x = 0;
 	int y = 5;
 	for (int i = 0; i < 5; ++i)
@@ -31,10 +33,10 @@ void Game::Reset()
 	brick.x_position = x;
 	brick.y_position = y;
 	brick.doubleThick = true;
-	brick.color = ConsoleColor::DarkGreen;
+	brick.color = ConsoleColor::DarkCyan;
 
 	bricks.push_back(brick);
-	x += 10;
+	x += 10; //hard-coded the needed blocks to line up to the right of the first block, for the one time
 	}
 }
 
@@ -98,6 +100,8 @@ void Game::CheckCollision()
 			ball.y_velocity *= -1;
 
 			// TODO #5 - If the ball hits the same brick 3 times (color == black), remove it from the vector
+			// NOAH: The starting brick color was DarkGreen, which if you hit twice puts it on black, and the notes say
+			//if the color is black delete it. So I changed the bricks to DarkCyan, so you can hit the block 3 times - then delete.
 			if (bricks[i].color == ConsoleColor(0))
 			{
 				bricks.erase(bricks.begin() + i);
@@ -106,6 +110,12 @@ void Game::CheckCollision()
 	}
 
 	// TODO #6 - If no bricks remain, pause ball and display (render) victory text with R to reset
+	if (bricks.size() == 0)
+	{
+		ball.x_position = ball.x_position;
+		ball.y_position = ball.y_position;
+		Render();
+	}
 
 
 	if (paddle.Contains(ball.x_position + ball.x_velocity, ball.y_velocity + ball.y_position))
