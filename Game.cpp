@@ -112,8 +112,9 @@ void Game::CheckCollision()
 	// TODO #6 - If no bricks remain, pause ball and display (render) victory text with R to reset
 	if (bricks.size() == 0)
 	{
-		ball.x_position = ball.x_position;
-		ball.y_position = ball.y_position;
+		//ball.x_velocity = 0;
+		//ball.y_velocity = 0;
+		ball.moving = false;
 		Render();
 	}
 
