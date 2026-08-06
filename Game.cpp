@@ -5,6 +5,7 @@
 Game::Game()
 {
 	Reset();
+	state = GameState::Playing;
 }
 
 void Game::Reset()
@@ -27,16 +28,16 @@ void Game::Reset()
 	int y = 5;
 	for (int i = 0; i < 5; ++i)
 	{
-	Box brick;
-	brick.width = 10;
-	brick.height = 2;
-	brick.x_position = x;
-	brick.y_position = y;
-	brick.doubleThick = true;
-	brick.color = ConsoleColor::DarkCyan;
+		Box brick;
+		brick.width = 10;
+		brick.height = 2;
+		brick.x_position = x;
+		brick.y_position = y;
+		brick.doubleThick = true;
+		brick.color = ConsoleColor::DarkCyan;
 
-	bricks.push_back(brick);
-	x += 10; //hard-coded the needed blocks to line up to the right of the first block, for the one time
+		bricks.push_back(brick);
+		x += 10; //hard-coded the needed blocks to line up to the right of the first block, for the one time
 	}
 }
 
@@ -76,14 +77,23 @@ void Game::Render() const
 {
 	Console::Lock(true);
 	Console::Clear();
-	
+
 	paddle.Draw();
 	ball.Draw();
 
 	// TODO #3 - Update render to render all bricks
 	for (const Box& b : bricks)
 	{
-	b.Draw();
+		b.Draw();
+	}
+
+	if (state == GameState::Won)
+	{
+		std::cout << "VICTORY! Press R to Reset" << std::endl;
+	}
+	if (state == GameState::Lost)
+	{
+		std::cout << "YOU LOSE! Press R to Reset" << std::endl;
 	}
 
 	Console::Lock(false);
@@ -107,13 +117,19 @@ void Game::CheckCollision()
 				bricks.erase(bricks.begin() + i);
 			}
 		}
+		if (bricks.size() == 0)
+		{
+			state = GameState::Won;
+		}
 	}
 
 	// TODO #6 - If no bricks remain, pause ball and display (render) victory text with R to reset
-	if (bricks.size() == 0)
+	if (state == GameState::Won || state == GameState::Lost)
 	{
-		//ball.x_velocity = 0;
-		//ball.y_velocity = 0;
+		ball.x_position = ball.x_position;
+		ball.y_position = ball.y_position;
+		ball.x_velocity = 0;
+		ball.y_velocity = 0;
 		ball.moving = false;
 		Render();
 	}
@@ -125,4 +141,9 @@ void Game::CheckCollision()
 	}
 
 	// TODO #7 - If ball touches bottom of window, pause ball and display (render) defeat text with R to reset
+	if (ball.y_position + ball.y_velocity >= 30)
+	{
+		state = GameState::Lost;
+		Render();
+	}
 }

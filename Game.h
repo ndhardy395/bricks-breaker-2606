@@ -3,8 +3,14 @@
 #include "Ball.h"
 #include <vector>
 
+
 class Game
 {
+	enum GameState 
+		{ Playing, Won, Lost };
+
+	GameState state = GameState::Playing;
+
 	Ball ball = {};
 	Box paddle = {};
 
