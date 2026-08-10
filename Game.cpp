@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "Game.h"
+#include <vector>
+#include <string>
 
 Game::Game()
 {
@@ -8,7 +10,9 @@ Game::Game()
 
 void Game::Reset()
 {
+	state = GameState::Playing;
 	Console::SetWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+	Console::SetBufferSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 	Console::CursorVisible(false);
 	paddle.width = 12;
 	paddle.height = 2;
@@ -20,12 +24,24 @@ void Game::Reset()
 	ResetBall();
 
 	// TODO #2 - Add this brick and 4 more bricks to the vector
-	brick.width = 10;
-	brick.height = 2;
-	brick.x_position = 0;
-	brick.y_position = 5;
-	brick.doubleThick = true;
-	brick.color = ConsoleColor::DarkGreen;
+	// NOAH: The starting brick color was DarkGreen, which if you hit twice puts it on black, and the notes say
+	//if the color is black delete it. So I changed the bricks to DarkCyan, so you can hit the block 3 times - then delete.
+	bricks.clear();
+	int x = 0;
+	int y = 5;
+	for (int i = 0; i < 5; ++i)
+	{
+		Box brick;
+		brick.width = 10;
+		brick.height = 2;
+		brick.x_position = x;
+		brick.y_position = y;
+		brick.doubleThick = true;
+		brick.color = ConsoleColor::DarkCyan;
+
+		bricks.push_back(brick);
+		x += 10; //hard-coded the needed blocks to line up to the right of the first block, for the one time
+	}
 }
 
 void Game::ResetBall()
@@ -64,12 +80,30 @@ void Game::Render() const
 {
 	Console::Lock(true);
 	Console::Clear();
-	
+
 	paddle.Draw();
 	ball.Draw();
 
 	// TODO #3 - Update render to render all bricks
-	brick.Draw();
+	for (const Box& b : bricks)
+	{
+		b.Draw();
+	}
+
+	std::string messageWin = "VICTORY! Press R to Reset";
+	std::string messageLost = "YOU LOSE! Press R to Reset";
+	int messageColumn = (WINDOW_WIDTH - messageWin.length()) / 2;
+	int messageRow = (WINDOW_HEIGHT / 2);
+	if (state == GameState::Won)
+	{
+		Console::SetCursorPosition(messageColumn, messageRow);
+		std::cout << messageWin;
+	}
+	else if (state == GameState::Lost)
+	{
+		Console::SetCursorPosition(messageColumn, messageRow);
+		std::cout << messageLost;
+	}
 
 	Console::Lock(false);
 }
@@ -77,22 +111,54 @@ void Game::Render() const
 void Game::CheckCollision()
 {
 	// TODO #4 - Update collision to check all bricks
-	if (brick.Contains(ball.x_position + ball.x_velocity, ball.y_position + ball.y_velocity))
+	for (size_t i = 0; i < bricks.size(); ++i)
 	{
-		brick.color = ConsoleColor(brick.color - 1);
-		ball.y_velocity *= -1;
+		if (bricks[i].Contains(ball.x_position + ball.x_velocity, ball.y_position + ball.y_velocity))
+		{
+			bricks[i].color = ConsoleColor(bricks[i].color - 1);
+			ball.y_velocity *= -1;
 
-		// TODO #5 - If the ball hits the same brick 3 times (color == black), remove it from the vector
-
+			// TODO #5 - If the ball hits the same brick 3 times (color == black), remove it from the vector
+			// NOAH: The starting brick color was DarkGreen, which if you hit twice puts it on black, and the notes say
+			//if the color is black delete it. So I changed the bricks to DarkCyan, so you can hit the block 3 times - then delete.
+			if (bricks[i].color == ConsoleColor::Black)
+			{
+				bricks.erase(bricks.begin() + i);
+			}
+		}
+		if (bricks.size() == 0)
+		{
+			state = GameState::Won;
+			ball.moving = false;
+		}
 	}
 
 	// TODO #6 - If no bricks remain, pause ball and display (render) victory text with R to reset
-
-
-	if (paddle.Contains(ball.x_position + ball.x_velocity, ball.y_velocity + ball.y_position))
+	/*if (state == GameState::Won || state == GameState::Lost)
 	{
+		ball.x_position = ball.x_position;
+		ball.y_position = ball.y_position;
+		ball.x_velocity = 0;
+		ball.y_velocity = 0;
+		ball.moving = false;
+		Render();
+	}*/
+	//This is accomplished with ball.moving = false; in void Game::CheckCollision()
+
+
+	if (paddle.Contains(ball.x_position, ball.y_velocity + ball.y_position)) 
+	{
+		// I removed the ball.x_velocity because if the ball lands in the corner, even if the paddle is there, 
+		//the arithmetic passes the ball through by passing past the x boundary
 		ball.y_velocity *= -1;
 	}
 
 	// TODO #7 - If ball touches bottom of window, pause ball and display (render) defeat text with R to reset
+	int lossrow = paddle.y_position;
+	if (ball.y_position + ball.y_velocity >= lossrow)
+	{
+		state = GameState::Lost;
+		ball.moving = false;
+		Render();
+	}
 }
